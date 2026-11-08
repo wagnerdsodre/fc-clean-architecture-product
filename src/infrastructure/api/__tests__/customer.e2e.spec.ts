@@ -1,8 +1,9 @@
-import { app, sequelize } from "../express";
+import { app, databaseReady, sequelize } from "../express";
 import request from "supertest";
 
 describe("E2E test for customer", () => {
   beforeEach(async () => {
+    await databaseReady;
     await sequelize.sync({ force: true });
   });
 
