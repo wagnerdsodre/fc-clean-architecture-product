@@ -1,4 +1,4 @@
-# Clean Architecture: Product Use Cases
+# Clean Architecture: Product Use Cases e API de Listagem
 
 Implementação do desafio Full Cycle em TypeScript, baseada no template obrigatório
 [devfullcycle/fc-clean-architecture](https://github.com/devfullcycle/fc-clean-architecture).
@@ -9,6 +9,10 @@ Os quatro casos de uso seguem a organização de Customer do curso: recebem DTOs
 dependem de `ProductRepositoryInterface` por injeção no construtor e retornam DTOs
 sem expor entidades ou modelos de persistência. A entidade `Product` concentra as
 validações; a infraestrutura usa Sequelize e SQLite.
+
+A continuidade do desafio adiciona `GET /product`, que chama o
+`ListProductUseCase` existente e retorna a lista de produtos em JSON, com testes
+E2E do fluxo HTTP completo.
 
 ## Requisitos e instalação
 
@@ -23,6 +27,50 @@ cd fc-clean-architecture-product
 npm ci
 ```
 
+## Executar a API
+
+```sh
+npm run dev
+```
+
+A API inicia em `http://localhost:3000` após criar as tabelas do banco. A variável
+de ambiente `PORT` permite escolher outra porta. Para encerrar, pressione Ctrl+C.
+
+Acesse `http://localhost:3000/product` no navegador ou execute:
+
+```sh
+curl -H "Accept: application/json" http://localhost:3000/product
+```
+
+No Windows PowerShell, utilize `curl.exe` no lugar de `curl`.
+
+O endpoint retorna **HTTP 200** e `Content-Type: application/json`. Com o banco
+vazio, a resposta é:
+
+```json
+{"products": []}
+```
+
+Com produtos cadastrados, o formato da resposta é:
+
+```json
+{
+  "products": [
+    {
+      "id": "0cc61642-3801-45ed-a84d-6e3d3ec8684d",
+      "name": "Product 1",
+      "price": 10.5
+    }
+  ]
+}
+```
+
+Como no template, o banco da API é SQLite em memória: começa vazio e é descartado
+ao encerrar o processo. Os testes E2E cadastram produtos pelo `CreateProductUseCase`
+e repositório reais, no mesmo banco usado pela API, antes de consultar a rota.
+Uma falha ao consultar o banco retorna HTTP 500 e
+`{"error":"Internal server error"}`.
+
 ## Executar os testes
 
 Todos os comandos abaixo verificam os tipos com `tsc --noEmit` antes do Jest.
@@ -30,6 +78,12 @@ Todos os comandos abaixo verificam os tipos com `tsc --noEmit` antes do Jest.
 ```sh
 # Suíte completa, incluindo os testes originais do template
 npm test -- --runInBand
+
+# Testes E2E da API: Product e Customer
+npm run test:e2e
+
+# Somente os testes E2E da listagem de produtos
+npm run test:e2e -- --runTestsByPath src/infrastructure/api/__tests__/product.e2e.spec.ts
 
 # Todos os testes dos quatro casos de uso de Product
 npm run test:product
@@ -44,9 +98,17 @@ npm run test:product:integration
 npm run test:coverage
 ```
 
-Resultado validado: **91 testes na suíte completa**, incluindo **36 testes de
-Product** (19 unitários e 17 de integração). Cada caso de uso tem seus próprios
-arquivos `.unit.spec.ts` e `.integration.spec.ts`.
+Resultado validado: **95 testes na suíte completa**, incluindo **36 testes dos
+casos de uso de Product** (19 unitários e 17 de integração) e **7 testes E2E da
+API** (4 de Product e 3 de Customer). Cada caso de uso tem seus próprios arquivos
+`.unit.spec.ts` e `.integration.spec.ts`.
+
+Os E2E usam Supertest para enviar requisições HTTP à aplicação Express real e
+validam status, tipo de conteúdo e corpo JSON. Não é necessário iniciar a API em
+outro terminal. O banco SQLite em memória é recriado antes de cada teste e fechado
+ao final. Os cenários de Product verificam lista vazia, um produto, vários
+produtos (incluindo preço zero, decimal e caracteres acentuados) e falha real do
+banco, sem mocks. A ordem dos produtos não é presumida.
 
 O comando de cobertura exige **100% de statements, branches, functions e lines
 nos quatro arquivos `*.usecase.ts` de Product**. A configuração dedicada está em
@@ -112,6 +174,11 @@ src/
   domain/product/                        # Entidade e contrato do repositório
   infrastructure/product/repository/
     sequelize/                           # Modelo e repositório reais
+  infrastructure/api/
+    express.ts                           # Composição e inicialização do banco
+    server.ts                            # Servidor HTTP
+    routes/product.route.ts              # GET /product
+    __tests__/product.e2e.spec.ts         # Testes E2E de Product
   usecase/product/
     create/
       create.product.dto.ts
@@ -140,6 +207,8 @@ O projeto permanece na branch `main`, com um único projeto neste repositório.
 Os commits da implementação usam Conventional Commits em inglês: um commit por
 caso de uso, incluindo seus DTOs e testes, seguido de commits separados para a
 configuração de cobertura e a documentação.
+Na continuidade, a rota, a integração com o banco e os testes E2E compõem um
+commit de funcionalidade, e as instruções da API ficam em um commit de documentação.
 
 ```sh
 git log --oneline 4afeebca6b2ed0227e5ebb774db2317d0f9128ee..main
