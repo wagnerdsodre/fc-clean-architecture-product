@@ -14,6 +14,10 @@
   },
   "scripts": {
     "test": "npm run tsc -- --noEmit && jest",
+    "test:product": "npm run tsc -- --noEmit && jest --config jest.product.config.ts --runInBand",
+    "test:product:unit": "npm run test:product -- --testPathPattern=unit.spec.ts$",
+    "test:product:integration": "npm run test:product -- --testPathPattern=integration.spec.ts$",
+    "test:coverage": "npm run test:product -- --coverage",
     "tsc": "tsc",
     "dev": "nodemon src/infrastructure/api/server.ts"
   },
