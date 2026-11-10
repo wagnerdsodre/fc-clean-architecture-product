@@ -10,6 +10,10 @@ export default class Notification {
     this.errors.push(error);
   }
 
+  clearErrors(): void {
+    this.errors = [];
+  }
+
   hasErrors(): boolean {
     return this.errors.length > 0;
   }

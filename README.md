@@ -7,8 +7,10 @@ O histórico original foi preservado a partir do commit
 
 Os quatro casos de uso seguem a organização de Customer do curso: recebem DTOs,
 dependem de `ProductRepositoryInterface` por injeção no construtor e retornam DTOs
-sem expor entidades ou modelos de persistência. A entidade `Product` concentra as
-validações; a infraestrutura usa Sequelize e SQLite.
+sem expor entidades ou modelos de persistência. A entidade `Product` concentra as validações e acumula inconsistências na
+notificação (`product.notification`), sem interromper a validação no primeiro
+erro. Os casos de uso verificam a notificação e rejeitam operações inválidas
+antes de persistir; a infraestrutura usa Sequelize e SQLite.
 
 A continuidade do desafio adiciona `GET /product`, que chama o
 `ListProductUseCase` existente e retorna a lista de produtos em JSON, com testes
@@ -90,6 +92,9 @@ npm run test:product
 
 # Somente os testes unitários de Product
 npm run test:product:unit
+
+# Testes unitários da entidade Product, incluindo validação de múltiplos erros
+npm test -- --runInBand --runTestsByPath src/domain/product/entity/product.spec.ts
 
 # Somente os testes de integração de Product
 npm run test:product:integration

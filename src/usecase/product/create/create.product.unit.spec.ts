@@ -52,6 +52,17 @@ describe("Unit test create product use case", () => {
     expect(repository.create).not.toHaveBeenCalled();
   });
 
+  it("should report all validation errors before persisting", async () => {
+    await expect(usecase.execute({ name: "", price: -1 })).rejects.toMatchObject({
+      errors: [
+        { context: "product", message: "Name is required" },
+        { context: "product", message: "Price must be greater than zero" },
+      ],
+    });
+
+    expect(repository.create).not.toHaveBeenCalled();
+  });
+
   it("should propagate persistence errors", async () => {
     const error = new Error("Database unavailable");
     repository.create.mockRejectedValue(error);

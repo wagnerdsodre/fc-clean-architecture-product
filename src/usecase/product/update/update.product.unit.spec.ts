@@ -43,6 +43,17 @@ describe("Unit test update product use case", () => {
     expect(repository.update).not.toHaveBeenCalled();
   });
 
+  it("should report all validation errors before persisting", async () => {
+    await expect(usecase.execute({ id: "1", name: "", price: -1 })).rejects.toMatchObject({
+      errors: [
+        { context: "product", message: "Name is required" },
+        { context: "product", message: "Price must be greater than zero" },
+      ],
+    });
+
+    expect(repository.update).not.toHaveBeenCalled();
+  });
+
   it("should reject a missing product without updating", async () => {
     repository.find.mockRejectedValue(new Error("Product not found"));
 

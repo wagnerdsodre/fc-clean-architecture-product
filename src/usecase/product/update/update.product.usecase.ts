@@ -1,3 +1,4 @@
+import NotificationError from "../../../domain/@shared/notification/notification.error";
 import ProductRepositoryInterface from "../../../domain/product/repository/product-repository.interface";
 import { InputUpdateProductDto, OutputUpdateProductDto } from "./update.product.dto";
 
@@ -8,6 +9,10 @@ export default class UpdateProductUseCase {
     const product = await this.productRepository.find(input.id);
     product.changeName(input.name);
     product.changePrice(input.price);
+    if (product.notification.hasErrors()) {
+      throw new NotificationError(product.notification.getErrors());
+    }
+
     await this.productRepository.update(product);
 
     return {
